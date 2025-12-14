@@ -1,1 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Old Testament — Easy LDS Study</title>
 
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e3a5f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+:root {
+  --bg:#f4f4f4; --text:#222; --panel:#fff; --accent:#1e3a5f;
+}
+body.dark { --bg:#121212; --text:#eaeaea; --panel:#1e1e1e; --accent:#4a90e2; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial; background:var(--bg); color:var(--text); }
+header { background:var(--accent); color:#fff; padding:12px; display:flex; gap:12px; align-items:center; }
+button { background:none; border:none; color:inherit; font-size:1.4em; }
+#darkBtn { margin-left:auto; }
+.container { display:flex; height:calc(100vh - 52px); }
+nav { width:260px; background:var(--panel); overflow-y:auto; transition:transform .3s cubic-bezier(.4,0,.2,1); }
+.book-title-btn { width:100%; padding:12px; font-weight:600; text-align:left; cursor:pointer; }
+.chapters { max-height:0; overflow:hidden; transition:max-height .35s ease; }
+.book.open .chapters { max-height:1000px; }
+.chapter-btn { padding:8px 20px; width:100%; text-align:left; cursor:pointer; }
+.chapter-btn:hover { background: rgba(0,0,0,.05); }
+main { flex:1; padding:20px; transition:opacity .25s ease, transform .25s ease; }
+.fade-out { opacity:0; transform:translateX(20px); }
+.summary { background:rgba(0,0,0,.05); border-left:5px solid var(--accent); padding:14px; }
+@media(max-width:768px){ nav { position:fixed; top:52px; height:calc(100vh - 52px); transform:translateX(-100%); z-index:1000; } nav.open { transform:translateX(0); } }
+</style>
+</head>
+
+<body>
+
+<header>
+  <button id="menuBtn">☰</button>
+  Old Testament — Simplified LDS Study
+  <button id="darkBtn">🌙</button>
+</header>
+
+<div class="container">
+  <nav id="nav"></nav>
+  <main id="content">
+    <h1>Old Testament</h1>
+    <p>Select a book and chapter</p>
+  </main>
+</div>
+
+<script>
+// LDS Old Testament structure
+const books={
+"Genesis":50,"Exodus":40,"Leviticus":27,"Numbers":36,"Deuteronomy":34,
+"Joshua":24,"Judges":21,"Ruth":4,"1 Samuel":31,"2 Samuel":24,
+"1 Kings":22,"2 Kings":25,"1 Chronicles":29,"2 Chronicles":36,
+"Ezra":10,"Nehemiah":13,"Esther":10,"Job":42,"Psalms":150,
+"Proverbs":31,"Ecclesiastes":12,"Song of Solomon":8,
+"Isaiah":66,"Jeremiah":52,"Lamentations":5,"Ezekiel":48,
+"Daniel":12,"Hosea":14,"Joel":3,"Amos":9,"Obadiah":1,
+"Jonah":4,"Micah":7,"Nahum":3,"Habakkuk":3,"Zephaniah":3,
+"Haggai":2,"Zechariah":14,"Malachi":4
+};
+
+const nav=document.getElementById("nav");
+const content=document.getElementById("content");
+let currentBook,currentChapter;
+
+// Build sidebar with dropdown chapters
+for(let book in books){
+  const b=document.createElement("div");
+  b.className="book";
+  const t=document.createElement("button");
+  t.className="book-title-btn";
+  t.textContent=book;
+  t.onclick=()=>b.classList.toggle("open");
+  const cDiv=document.createElement("div");
+  cDiv.className="chapters";
+  for(let i=1;i<=books[book];i++){
+    const c=document.createElement("button");
+    c.className="chapter-btn";
+    c.textContent="Chapter "+i;
+    c.onclick=()=>load(book,i);
+    cDiv.appendChild(c);
+  }
+  b.append(t,cDiv); nav.appendChild(b);
+}
+
+function load(book,chapter){
+  currentBook=book; currentChapter=chapter;
+  content.classList.add("fade-out");
+  setTimeout(()=>{
+    content.innerHTML=`
+      <h1>${book}</h1>
+      <h3>Chapter ${chapter}</h3>
+      <div class="summary">
+        <strong>Simplified Summary</strong><br><br>
+        God works with His people through commandments, prophecy, history, and covenants—always pointing forward to Jesus Christ.
+        <br><br>
+        <em>Original modern summary. No scripture text.</em>
+      </div>`;
+    content.classList.remove("fade-out");
+  },200);
+}
+
+document.getElementById("menuBtn").onclick=()=>nav.classList.toggle("open");
+document.getElementById("darkBtn").onclick=()=>document.body.classList.toggle("dark");
+
+// Swipe for chapters
+let sx=0;
+content.addEventListener("touchstart",e=>sx=e.touches[0].clientX);
+content.addEventListener("touchend",e=>{
+  let d=e.changedTouches[0].clientX-sx;
+  if(!currentBook||Math.abs(d)<60)return;
+  if(d<0&&currentChapter<books[currentBook])load(currentBook,currentChapter+1);
+  if(d>0&&currentChapter>1)load(currentBook,currentChapter-1);
+});
+
+// Register service worker
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("service-worker.js"); }
+</script>
+
+</body>
+</html>
